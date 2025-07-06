@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо Оракула</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <h1 id="match-title">Команды</h1>
+        <p id="match-info">Информация о матче</p>
+        
+        <div class="wheel-container">
+            <canvas id="canvas" width="380" height="380">
+                <p>Ваш браузер не поддерживает HTML5 Canvas</p>
+            </canvas>
+        </div>
+
+        <button id="spin-button" class="spin-button" disabled>Крутить!</button>
+    </div>
+
+    <!-- Подключение скриптов -->
+    <!-- 1. Скрипт для связи с Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- 2. Библиотека для отрисовки колеса -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/winwheel.js/2.8.0/Winwheel.min.js"></script>
+    <!-- 3. Наш собственный скрипт с логикой -->
+    <script src="script.js"></script>
+</body>
+</html>
