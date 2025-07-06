@@ -1,4 +1,4 @@
-/* Используем переменные Telegram для адаптации к теме */
+/* Г€Г±ГЇГ®Г«ГјГ§ГіГҐГ¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ Telegram Г¤Г«Гї Г Г¤Г ГЇГІГ Г¶ГЁГЁ ГЄ ГІГҐГ¬ГҐ */
 :root {
     --bg-color: var(--tg-theme-bg-color, #ffffff);
     --text-color: var(--tg-theme-text-color, #000000);
@@ -40,7 +40,7 @@ body {
 .wheel-container {
     position: relative;
     width: 100%;
-    padding-top: 100%; /* Создает квадратный контейнер */
+    padding-top: 100%; /* Г‘Г®Г§Г¤Г ГҐГІ ГЄГўГ Г¤Г°Г ГІГ­Г»Г© ГЄГ®Г­ГІГҐГ©Г­ГҐГ° */
     margin-bottom: 20px;
 }
 
