@@ -1,71 +1,97 @@
-/* Èñïîëüçóåì ïåðåìåííûå Telegram äëÿ àäàïòàöèè ê òåìå */
-:root {
-    --bg-color: var(--tg-theme-bg-color, #ffffff);
-    --text-color: var(--tg-theme-text-color, #000000);
-    --button-color: var(--tg-theme-button-color, #007bff);
-    --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-}
-
+```css
+/* Стили для всего приложения */
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 15px;
+    background-color: var(--tg-theme-bg-color, #212121); /* Цвет фона из темы Telegram */
+    color: var(--tg-theme-text-color, #ffffff); /* Цвет текста из темы Telegram */
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    flex-direction: column;
     text-align: center;
-    overflow: hidden;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100vh;
 }
 
-.app-container {
-    width: 100%;
+.main-container {
     max-width: 400px;
+    width: 100%;
 }
 
-#match-title {
-    font-size: 1.2em;
-    font-weight: bold;
+h1 {
+    font-size: 28px;
     margin-bottom: 5px;
 }
 
-#match-info {
-    font-size: 0.9em;
-    color: var(--tg-theme-hint-color, #8e8e93);
+#subtitle {
+    font-size: 16px;
+    color: var(--tg-theme-hint-color, #aaaaaa); /* Цвет подсказки из темы Telegram */
     margin-top: 0;
     margin-bottom: 20px;
 }
 
+/* Контейнер для колеса и указателя */
 .wheel-container {
     position: relative;
-    width: 100%;
-    padding-top: 100%; /* Ñîçäàåò êâàäðàòíûé êîíòåéíåð */
-    margin-bottom: 20px;
+    width: 380px;
+    height: 380px;
+    margin: 0 auto;
+}
+
+/* Указатель (стрелка) */
+.pointer {
+    position: absolute;
+    top: -10px; /* Немного выше центра */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 30px solid #FFD700; /* Яркий золотой цвет для указателя */
+    z-index: 10;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
 }
 
 #canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
 }
 
+/* Стили для кнопки "Крутить" */
 .spin-button {
-    width: 100%;
+    display: block;
+    width: 80%;
+    max-width: 250px;
     padding: 15px;
-    font-size: 1.2em;
+    margin: 25px auto 0;
+    font-size: 20px;
     font-weight: bold;
-    background-color: var(--button-color);
-    color: var(--button-text-color);
+    color: #000000;
+    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: opacity 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
+.spin-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.spin-button:active {
+    transform: scale(0.98);
+}
+
+/* Стиль для заблокированной кнопки */
 .spin-button:disabled {
-    opacity: 0.5;
+    background: var(--tg-theme-button-color, #555);
+    color: var(--tg-theme-button-text-color, #ccc);
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
