@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="ru">
-<<head>
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Колесо Оракула</title>
+    <!-- Подключаем стили -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <div class="app-container">
-        <h1 id="match-title">Êîìàíäû</h1>
-        <p id="match-info">Èíôîðìàöèÿ î ìàò÷å</p>
+    <div class="main-container">
+        <h1>Колесо Оракула</h1>
+        <p id="subtitle">Крути колесо, чтобы выбрать ставку!</p>
         
         <div class="wheel-container">
-            <canvas id="canvas" width="380" height="380">
-                <p>Âàø áðàóçåð íå ïîääåðæèâàåò HTML5 Canvas</p>
-            </canvas>
+            <!-- Указатель (стрелка), который будет показывать на выпавший сектор -->
+            <div class="pointer"></div>
+            <!-- Сюда будет вставлено само колесо с помощью JavaScript -->
+            <canvas id="canvas" width="380" height="380"></canvas>
         </div>
 
-        <button id="spin-button" class="spin-button" disabled>Êðóòèòü!</button>
+        <!-- Кнопка для запуска вращения -->
+        <button id="spin_button" class="spin-button" onclick="startSpin();">КРУТИТЬ!</button>
     </div>
 
-    <!-- Ïîäêëþ÷åíèå ñêðèïòîâ -->
-    <!-- 1. Ñêðèïò äëÿ ñâÿçè ñ Telegram -->
+    <!-- Подключаем скрипт Telegram Web App -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- 2. Áèáëèîòåêà äëÿ îòðèñîâêè êîëåñà -->
+    <!-- Подключаем библиотеку для отрисовки колеса -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/winwheel.js/2.8.0/Winwheel.min.js"></script>
-    <!-- 3. Íàø ñîáñòâåííûé ñêðèïò ñ ëîãèêîé -->
+    <!-- Подключаем наш основной скрипт -->
     <script src="script.js"></script>
 </body>
-</html>
+</html>```
+
+---
