@@ -12,7 +12,7 @@ const segmentColors = ["#3498DB", "#E74C3C", "#2ECC71", "#F1C40F", "#9B59B6", "#
 function getUrlParams() {
     console.log("1. Начинаю парсинг URL...");
     const params = new URLSearchParams(window.location.hash.substring(1));
-    const dataParam = params.get('data');
+    const dataParam = params.get('payload');
     if (!dataParam) {
         console.error("Ошибка: параметр 'data' не найден в URL.");
         return [];
