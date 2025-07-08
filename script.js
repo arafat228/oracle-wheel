@@ -19,10 +19,11 @@ function getUrlParams() {
         return [];
     }
 
+    // --- ВОТ ВАЖНАЯ ЧАСТЬ ---
     try {
         // urlencode заменяет пробелы на +, вернем их обратно
         const correctedString = dataParam.replace(/\+/g, ' ');
-        // Просто парсим JSON. Декодирование atob() больше не нужно!
+        // Просто парсим JSON. Декодирование atob() здесь НЕ НУЖНО!
         const segments = JSON.parse(correctedString);
         
         console.log("2. Данные успешно раскодированы:", segments);
