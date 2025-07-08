@@ -48,6 +48,7 @@ function alertPrize(indicatedSegment) {
     setTimeout(() => { tg.close(); }, 1500);
 }
 
+// Эта функция теперь находится в глобальной области видимости
 function startSpin() {
     if (wheelSpinning === false) {
         spinButton.disabled = true;
