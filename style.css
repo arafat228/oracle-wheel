@@ -35,8 +35,8 @@ h1 {
 /* Контейнер для колеса и указателя */
 .wheel-container {
     position: relative;
-    width: 380px;
-    height: 380px;
+    width: 360px;
+    height: 360px;
     margin: 0 auto;
 }
 
