@@ -12,11 +12,28 @@ const segmentColors = ["#3498DB", "#E74C3C", "#2ECC71", "#F1C40F", "#9B59B6", "#
 function getUrlParams() {
     console.log("1. Начинаю парсинг URL...");
     const params = new URLSearchParams(window.location.hash.substring(1));
+    // Ищем наш 'payload'
     const dataParam = params.get('payload');
     if (!dataParam) {
-        console.error("Ошибка: параметр 'data' не найден в URL.");
+        console.error("Ошибка: параметр 'payload' не найден в URL.");
         return [];
     }
+
+    try {
+        // urlencode заменяет пробелы на +, вернем их обратно
+        const correctedString = dataParam.replace(/\+/g, ' ');
+        // Просто парсим JSON. Декодирование atob() больше не нужно!
+        const segments = JSON.parse(correctedString);
+        
+        console.log("2. Данные успешно раскодированы:", segments);
+        if (Array.isArray(segments) && segments.length > 0) {
+            return segments;
+        }
+    } catch (e) {
+        console.error("Ошибка парсинга данных из URL:", e);
+    }
+    return [];
+}
 
     try {
         const decodedString = atob(dataParam);
