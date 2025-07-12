@@ -8,26 +8,36 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Слот-машина Оракула</title> <!-- Изменяем заголовок для ясности -->
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
     <div class="main-container">
-        <h1>Колесо Оракула</h1>
-        <p id="subtitle">Крути колесо, чтобы выбрать ставку!</p>
+        <h1>Слот-машина Оракула</h1>
+        <p id="subtitle">Анализирую вероятности...</p>
         
-        <div class="wheel-container">
-            <!-- Указатель (стрелка), который будет показывать на выпавший сектор -->
-            <div class="pointer"></div>
-            <!-- Сюда будет вставлено само колесо с помощью JavaScript -->
-            <canvas id="canvas" width="380" height="380"></canvas>
+        <!-- Контейнер для слот-машины. JS сам создаст внутри него барабаны -->
+        <div id="slot_machine" class="slot-machine">
+            <!-- Начальное состояние: пусто. Сюда JS добавит .reel-container -->
         </div>
 
-        <!-- Кнопка для запуска вращения -->
-        <button id="spin_button" class="spin-button" onclick="startSpin();">КРУТИТЬ!</button>
+        <!-- Кнопка для запуска вращения. Изначально неактивна. -->
+        <button id="spin_button" class="spin-button" onclick="startSpin();" disabled>ЗАГРУЗКА...</button>
     </div>
 
-    <!-- Подключаем скрипт Telegram Web App -->
+    <!-- Подключаем скрипт Telegram Web App (он остается) -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Подключаем библиотеку для отрисовки колеса -->
-    <script src="https://cdn.jsdelivr.net/gh/zarocknz/javascript-winwheel@2.8.0/Winwheel.min.js"></script>
+    <!-- УДАЛЯЕМ старую библиотеку Winwheel.js, она больше не нужна -->
+    <!-- <script src="https://cdn.jsdelivr.net/gh/zarocknz/javascript-winwheel@2.8.0/Winwheel.min.js"></script> -->
     <!-- Подключаем наш основной скрипт -->
     <script src="script.js"></script>
+
 </body>
 </html>
