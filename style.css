@@ -1,9 +1,8 @@
-```css
 /* Стили для всего приложения */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--tg-theme-bg-color, #212121); /* Цвет фона из темы Telegram */
-    color: var(--tg-theme-text-color, #ffffff); /* Цвет текста из темы Telegram */
+    background-color: var(--tg-theme-bg-color, #212121);
+    color: var(--tg-theme-text-color, #ffffff);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -13,11 +12,15 @@ body {
     padding: 20px;
     box-sizing: border-box;
     height: 100vh;
+    overflow: hidden; /* Важно, чтобы избежать случайной прокрутки страницы */
 }
 
 .main-container {
     max-width: 400px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
@@ -27,63 +30,109 @@ h1 {
 
 #subtitle {
     font-size: 16px;
-    color: var(--tg-theme-hint-color, #aaaaaa); /* Цвет подсказки из темы Telegram */
+    color: var(--tg-theme-hint-color, #aaaaaa);
     margin-top: 0;
-    margin-bottom: 20px;
+    margin-bottom: 30px; /* Увеличим отступ до слот-машины */
+    min-height: 20px; /* Чтобы контейнер не прыгал при смене текста */
 }
 
-/* Контейнер для колеса и указателя */
-.wheel-container {
-    position: relative;
-    width: 360px;
-    height: 360px;
+/* --- Стили для самой Слот-машины --- */
+.slot-machine {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 95%; /* Чуть шире */
     margin: 0 auto;
+    background: rgba(0,0,0,0.2);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    height: 60px; /* Высота видимой части одного элемента */
+    position: relative;
+    /* Эффект перспективы для объема */
+    perspective: 800px; 
 }
 
-/* Указатель (стрелка) */
-.pointer {
+/* Псевдо-элемент для создания "окошка" с градиентами, чтобы скрыть края */
+.slot-machine::before {
+    content: '';
     position: absolute;
-    top: -10px; /* Немного выше центра */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 30px solid #FFD700; /* Яркий золотой цвет для указателя */
-    z-index: 10;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px; /* Соответствует родительскому */
+    /* Главная магия: градиенты, которые плавно переходят в фон по краям */
+    box-shadow: inset 0 35px 25px -20px var(--tg-theme-bg-color, #212121),
+                inset 0 -35px 25px -20px var(--tg-theme-bg-color, #212121);
+    z-index: 2; /* Должен быть поверх барабанов */
+    pointer-events: none; /* Чтобы не мешал кликам */
 }
 
-#canvas {
-    width: 100%;
-    height: 100%;
+/* Контейнер для одного барабана. Он обрезает все, что выходит за его пределы */
+.reel-container {
+    height: 60px; /* Высота должна совпадать с высотой родителя .slot-machine */
+    overflow: hidden;
+    flex: 1; /* Чтобы барабаны (если их два) делили место поровну */
 }
 
-/* Стили для кнопки "Крутить" */
+/* Сам барабан - это список UL */
+.reel {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* Ключевое свойство для анимации. Она будет плавной и долгой. */
+    /* cubic-bezier - это функция плавности для красивого замедления */
+    transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+    /* 3D-трансформация для эффекта объема */
+    transform-style: preserve-3d;
+}
+
+/* Каждый элемент в барабане */
+.reel-item {
+    height: 60px; /* Высота одного элемента, совпадает с контейнером */
+    line-height: 60px; /* Выравнивание текста по вертикали */
+    font-size: 22px;
+    font-weight: bold;
+    /* Чтобы текст не переносился */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 5px;
+}
+
+/* Разделитель ":" для режима "точный счет" */
+.separator {
+    font-size: 30px;
+    font-weight: bold;
+    padding: 0 10px;
+    /* Ставим его под градиент, но над барабанами */
+    z-index: 1;
+}
+
+/* Стили для кнопки "Крутить". Взят и адаптирован старый стиль */
 .spin-button {
     display: block;
     width: 80%;
     max-width: 250px;
     padding: 15px;
-    margin: 25px auto 0;
+    margin: 40px auto 0;
     font-size: 20px;
     font-weight: bold;
-    color: #000000;
-    background: linear-gradient(180deg, #FFD700 0%, #FFA500 100%);
+    color: #ffffff; /* Белый текст */
+    background: linear-gradient(180deg, #42aaff 0%, #0077cc 100%); /* Синий градиент */
     border: none;
     border-radius: 12px;
     cursor: pointer;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
 }
 
-.spin-button:hover {
+.spin-button:not(:disabled):hover {
     transform: scale(1.05);
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
-.spin-button:active {
+.spin-button:not(:disabled):active {
     transform: scale(0.98);
 }
 
