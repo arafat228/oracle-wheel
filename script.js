@@ -191,7 +191,7 @@ function startSpin() {
 
         // Показываем Главную Кнопку для выхода
         tg.MainButton.show();
-        
+        spinning = false;
     }, { once: true });
 }
 
