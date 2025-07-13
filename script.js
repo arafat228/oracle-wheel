@@ -7,7 +7,7 @@ const subtitle = document.getElementById('subtitle');
 let spinning = false;
 let payloadData = null;
 
-// --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+// --- ФУНКЦИИ ---
 
 function getUrlParams() {
     try {
@@ -28,13 +28,11 @@ function createReel(values) {
     const reelUl = document.createElement('ul');
     reelUl.className = 'reel';
     
-    // Целевая длина ленты, чтобы оба барабана были одинаковыми
-    const TARGET_LENGTH = 180; // 6 циклов по 30 или 3 цикла по 60 и т.д.
+    // Единая длина ленты для синхронизации скорости
+    const TARGET_LENGTH = 180;
     const repeatedValues = [];
     
-    // Дублируем массив, пока не достигнем нужной длины
     while (repeatedValues.length < TARGET_LENGTH) {
-        // Перемешиваем на каждой итерации для визуального разнообразия
         const shuffled = [...values].sort(() => Math.random() - 0.5);
         repeatedValues.push(...shuffled);
     }
@@ -49,27 +47,23 @@ function createReel(values) {
     return reelUl;
 }
 
-/**
- * [ИСПРАВЛЕННАЯ И УПРОЩЕННАЯ] Строит UI и устанавливает начальное положение.
- */
+// ЭТА ФУНКЦИЯ БЫЛА СЛОМАНА. ВОТ ЕЕ ПРОСТАЯ РАБОЧАЯ ВЕРСИЯ
 function buildUI() {
-    // 1. Очистка.
+    // 1. Сброс "памяти"
     slotMachineContainer.innerHTML = '';
-    // Прячем Главную Кнопку при каждом построении UI
     tg.MainButton.hide();
 
-    // 2. Определяем данные.
+    // 2. Определение данных (как в самой первой рабочей версии)
     let reelsData;
-    let subtitleText = "Ошибка: неизвестный тип игры."; // Текст по умолчанию
+    let subtitleText = "Ошибка: неизвестный тип игры.";
 
-    if (payloadData.type === 'winner' || payloadData.type === 'total' || payloadData.type === 'assessment' || payloadData.type === 'next_goal' || payloadData.type === 'markets') {
+    if (payloadData.type === 'winner' || payloadData.type === 'total' || payloadData.type === 'assessment' || payloadData.type === 'markets') {
          reelsData = [payloadData.options.map(opt => opt.value)];
          switch(payloadData.type) {
             case 'winner': subtitleText = "Кто же станет победителем?"; break;
             case 'total': subtitleText = "Какой будет тотал матча?"; break;
             case 'assessment': subtitleText = "Оценка обстановки в матче:"; break;
-            case 'next_goal': subtitleText = "Кто забьет следующий гол?"; break;
-            case 'markets': subtitleText = "Прогноз на рынки:"; break;
+             case 'markets': subtitleText = "Прогноз на рынки:"; break;
          }
     } else if (payloadData.type === 'score') {
         subtitleText = "Какой будет точный счет?";
@@ -80,7 +74,7 @@ function buildUI() {
     
     subtitle.textContent = subtitleText;
 
-    // 3. Создаем барабаны.
+    // 3. Создание барабанов
     reelsData.forEach((values, index) => {
         const reelContainer = document.createElement('div');
         reelContainer.className = 'reel-container';
@@ -96,42 +90,10 @@ function buildUI() {
         }
     });
 
-    // 4. Устанавливаем начальную позицию ПОСЛЕ отрисовки.
-    setTimeout(() => {
-        setInitialPosition();
-        spinButton.disabled = false;
-        spinButton.textContent = 'КРУТИТЬ!';
-    }, 0);
+    // 4. Активация кнопки - это единственное, что здесь должно происходить в конце.
+    spinButton.disabled = false;
+    spinButton.textContent = 'КРУТИТЬ!';
 }
-
-// Убедись, что функция setInitialPosition тоже есть в коде!
-// Я вставлю ее сюда на всякий случай, если ты ее удалил.
-/**
- * [НОВАЯ ФУНКЦИЯ] Устанавливает начальное положение барабанов без анимации.
- */
-function setInitialPosition() {
-    const reels = document.querySelectorAll('.reel');
-    reels.forEach(reel => {
-        reel.style.transition = 'none'; // Временно отключаем плавную анимацию
-        const items = Array.from(reel.children);
-        const itemHeight = items[0].offsetHeight;
-        
-        let targetValue = items[0].textContent; // По умолчанию
-        // Для точного счета ищем '0'
-        if (payloadData.type === 'score' && items.some(item => item.textContent === '0')) {
-            targetValue = '0';
-        }
-        
-        // Ищем индекс где-то в середине
-        const targetIndex = items.findIndex((item, idx) => 
-            item.textContent === targetValue && idx > items.length / 2
-        );
-        
-        const offset = targetIndex >= 0 ? targetIndex * itemHeight : 0;
-        reel.style.transform = `translateY(-${offset}px)`; // Мгновенно сдвигаем
-    });
-}
-
 
 function weightedRandomChoice(options) {
     let totalWeight = options.reduce((sum, option) => sum + option.weight, 0);
@@ -143,9 +105,8 @@ function weightedRandomChoice(options) {
     return options[options.length - 1].value;
 }
 
-/**
- * [ИСПРАВЛЕННАЯ И УПРОЩЕННАЯ] Функция запуска вращения.
- */
+
+// ЭТА ФУНКЦИЯ БЫЛА СЛОМАНА. ВОТ ЕЕ ПРОСТАЯ РАБОЧАЯ ВЕРСИЯ
 function startSpin() {
     if (spinning) return;
     spinning = true;
@@ -154,85 +115,56 @@ function startSpin() {
     spinButton.disabled = true;
     spinButton.textContent = 'ВРАЩАЕТСЯ...';
     
-    // Перезарядку мы теперь делаем при повторном нажатии
-    // Анимацию включаем сразу
+    // Просто розыгрыш и запуск анимации. Никаких перезарядок и прочей хуйни.
+    const finalValue = weightedRandomChoice(payloadData.options);
     const reels = document.querySelectorAll('.reel');
-    reels.forEach(reel => {
-         reel.style.transition = 'transform 3s cubic-bezier(.25, .1, .2, 1)';
-    });
 
-
-    // Оборачиваем вычисление в setTimeout, чтобы анимация успела включиться
-    setTimeout(() => {
-        const finalValue = weightedRandomChoice(payloadData.options);
-
-        reels.forEach((reel, index) => {
-            const targetValue = (payloadData.type === 'score') ? finalValue[index] : finalValue;
-            const items = Array.from(reel.children);
-            const itemHeight = items[0].offsetHeight;
-
-            let targetIndex = -1;
-            for(let i = items.length - 2; i > items.length * 0.7; i--) { // ищем в последней трети
-                if (items[i].textContent === targetValue) {
-                    targetIndex = i;
-                    break;
-                }
-            }
-            if (targetIndex === -1) targetIndex = items.length - 2;
-
-            const offset = targetIndex * itemHeight;
-            reel.style.transform = `translateY(-${offset}px)`;
-        });
-
-        reels[0].addEventListener('transitionend', () => {
-            const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
-            const resultData = { type: 'oracle_result', value: resultText };
-            tg.sendData(JSON.stringify(resultData));
-
-            // Логика "Еще раз"
-            buildUI(); // <-- ВМЕСТО ИЗМЕНЕНИЯ КНОПКИ МЫ ПРОСТО ПЕРЕСТРАИВАЕМ UI
-            spinning = false;
-            tg.MainButton.show();
-            
-        }, { once: true });
-    }, 100);
-}
+    reels.forEach((reel, index) => {
+        // Устанавливаем анимацию ПЕРЕД трансформацией
+        reel.style.transition = 'transform 3s cubic-bezier(.25, .1, .2, 1)';
         
-        // Запасной вариант, если ничего не нашлось
-        if (targetIndex === -1) targetIndex = items.length - 1;
+        const targetValue = (payloadData.type === 'score') ? finalValue[index] : finalValue;
+        const items = Array.from(reel.children);
+        const itemHeight = items[0].offsetHeight;
+        
+        // Простой и надежный поиск индекса в последней части ленты
+        let targetIndex = -1;
+        for (let i = Math.floor(items.length * 0.9); i < items.length; i++) {
+             if (items[i].textContent === targetValue) {
+                targetIndex = i;
+                break;
+            }
+        }
+        // Если вдруг не нашли, берем самый последний элемент
+        if (targetIndex === -1) targetIndex = items.length - 1; 
 
         const offset = targetIndex * itemHeight;
         reel.style.transform = `translateY(-${offset}px)`;
     });
     
-    // 3. Финал (обработка завершения анимации).
+    // Обработка финала
     reels[0].addEventListener('transitionend', () => {
-        // Отправляем результат боту, как и раньше
         const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
-        const resultData = {
-            type: 'oracle_result',
-            value: resultText,
-        };
+        const resultData = { type: 'oracle_result', value: resultText };
         tg.sendData(JSON.stringify(resultData));
 
-        // Убираем автозакрытие
-        // setTimeout(() => { tg.close(); }, 1500);
-
-        // Меняем состояние кнопки "Крутить"
         spinButton.disabled = false;
         spinButton.textContent = 'ЕЩЕ РАЗ?';
-
-        // Показываем Главную Кнопку для выхода
         tg.MainButton.show();
-        spinning = false;
+        spinning = false; // Починка повторного вращения
+        
     }, { once: true });
 }
+
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
 window.addEventListener('load', () => {
     tg.expand();
+    
+    // Настройка MainButton
     tg.MainButton.setText('Закрыть');
     tg.MainButton.onClick(() => tg.close());
+
     payloadData = getUrlParams();
 
     if (!payloadData || !payloadData.type || !payloadData.options || payloadData.options.length === 0) {
@@ -242,5 +174,6 @@ window.addEventListener('load', () => {
         return;
     }
     
+    // Вызываем простую и рабочую функцию построения UI.
     buildUI();
 });
