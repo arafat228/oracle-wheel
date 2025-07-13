@@ -28,10 +28,12 @@ function createReel(values) {
     const reelUl = document.createElement('ul');
     reelUl.className = 'reel';
     
-    // Дублируем значения, чтобы лента была длинной
+    // Целевая длина ленты, чтобы оба барабана были одинаковыми
+    const TARGET_LENGTH = 180; // 6 циклов по 30 или 3 цикла по 60 и т.д.
     const repeatedValues = [];
-    // 30 циклов - хороший баланс между длиной и производительностью
-    for (let i = 0; i < 30; i++) {
+    
+    // Дублируем массив, пока не достигнем нужной длины
+    while (repeatedValues.length < TARGET_LENGTH) {
         // Перемешиваем на каждой итерации для визуального разнообразия
         const shuffled = [...values].sort(() => Math.random() - 0.5);
         repeatedValues.push(...shuffled);
