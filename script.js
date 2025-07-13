@@ -53,26 +53,34 @@ function createReel(values) {
  * [ИСПРАВЛЕННАЯ И УПРОЩЕННАЯ] Строит UI и устанавливает начальное положение.
  */
 function buildUI() {
-    // 1. Полностью очищаем контейнер. Это исправляет баг "памяти".
+    // 1. Очистка.
     slotMachineContainer.innerHTML = '';
+    // Прячем Главную Кнопку при каждом построении UI
+    tg.MainButton.hide();
 
-    // 2. Определяем данные для барабанов.
+    // 2. Определяем данные.
     let reelsData;
-    if (payloadData.type === 'winner' || payloadData.type === 'total' || payloadData.type === 'assessment') {
-        subtitle.textContent = payloadData.type === 'winner' ? "Кто же станет победителем?" : 
-                               payloadData.type === 'total' ? "Какой будет тотал матча?" : "Оценка обстановки в матче:";
-        reelsData = [payloadData.options.map(opt => opt.value)];
+    let subtitleText = "Ошибка: неизвестный тип игры."; // Текст по умолчанию
+
+    if (payloadData.type === 'winner' || payloadData.type === 'total' || payloadData.type === 'assessment' || payloadData.type === 'next_goal' || payloadData.type === 'markets') {
+         reelsData = [payloadData.options.map(opt => opt.value)];
+         switch(payloadData.type) {
+            case 'winner': subtitleText = "Кто же станет победителем?"; break;
+            case 'total': subtitleText = "Какой будет тотал матча?"; break;
+            case 'assessment': subtitleText = "Оценка обстановки в матче:"; break;
+            case 'next_goal': subtitleText = "Кто забьет следующий гол?"; break;
+            case 'markets': subtitleText = "Прогноз на рынки:"; break;
+         }
     } else if (payloadData.type === 'score') {
-        subtitle.textContent = "Какой будет точный счет?";
+        subtitleText = "Какой будет точный счет?";
         const reel1Values = [...new Set(payloadData.options.map(opt => opt.value[0]))];
         const reel2Values = [...new Set(payloadData.options.map(opt => opt.value[1]))];
         reelsData = [reel1Values, reel2Values];
-    } else {
-        subtitle.textContent = "Ошибка: неизвестный тип игры.";
-        return;
     }
+    
+    subtitle.textContent = subtitleText;
 
-    // 3. Создаем и наполняем барабаны.
+    // 3. Создаем барабаны.
     reelsData.forEach((values, index) => {
         const reelContainer = document.createElement('div');
         reelContainer.className = 'reel-container';
@@ -88,37 +96,40 @@ function buildUI() {
         }
     });
 
-    // 4. Устанавливаем начальное положение БЕЗ АНИМАЦИИ.
-    // Оборачиваем в setTimeout(..., 0), чтобы браузер успел отрисовать элементы
-    // перед тем, как мы их сдвинем. Это надежнее, чем requestAnimationFrame.
+    // 4. Устанавливаем начальную позицию ПОСЛЕ отрисовки.
     setTimeout(() => {
-        const reels = document.querySelectorAll('.reel');
-        reels.forEach(reel => {
-            reel.style.transition = 'none'; // Отключаем анимацию
-            
-            const items = Array.from(reel.children);
-            const itemHeight = items[0].offsetHeight;
-            let targetValue = items[0].textContent; // Значение по умолчанию
-
-            // Для 'score' пытаемся найти '0'
-            if (payloadData.type === 'score' && items.some(item => item.textContent === '0')) {
-                targetValue = '0';
-            }
-
-            // Ищем индекс где-то в середине ленты
-            const targetIndex = items.findIndex((item, idx) => 
-                item.textContent === targetValue && idx > items.length / 2
-            );
-
-            const offset = targetIndex > 0 ? targetIndex * itemHeight : 0;
-            reel.style.transform = `translateY(-${offset}px)`; // Мгновенно сдвигаем
-        });
-
-        // Активируем кнопку только после установки начальной позиции
+        setInitialPosition();
         spinButton.disabled = false;
         spinButton.textContent = 'КРУТИТЬ!';
-
     }, 0);
+}
+
+// Убедись, что функция setInitialPosition тоже есть в коде!
+// Я вставлю ее сюда на всякий случай, если ты ее удалил.
+/**
+ * [НОВАЯ ФУНКЦИЯ] Устанавливает начальное положение барабанов без анимации.
+ */
+function setInitialPosition() {
+    const reels = document.querySelectorAll('.reel');
+    reels.forEach(reel => {
+        reel.style.transition = 'none'; // Временно отключаем плавную анимацию
+        const items = Array.from(reel.children);
+        const itemHeight = items[0].offsetHeight;
+        
+        let targetValue = items[0].textContent; // По умолчанию
+        // Для точного счета ищем '0'
+        if (payloadData.type === 'score' && items.some(item => item.textContent === '0')) {
+            targetValue = '0';
+        }
+        
+        // Ищем индекс где-то в середине
+        const targetIndex = items.findIndex((item, idx) => 
+            item.textContent === targetValue && idx > items.length / 2
+        );
+        
+        const offset = targetIndex >= 0 ? targetIndex * itemHeight : 0;
+        reel.style.transform = `translateY(-${offset}px)`; // Мгновенно сдвигаем
+    });
 }
 
 
