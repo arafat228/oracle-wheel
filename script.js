@@ -149,71 +149,53 @@ function weightedRandomChoice(options) {
 function startSpin() {
     if (spinning) return;
     spinning = true;
-    
-    // Прячем Главную Кнопку на время вращения
+
     tg.MainButton.hide();
     spinButton.disabled = true;
     spinButton.textContent = 'ВРАЩАЕТСЯ...';
     
+    // Перезарядку мы теперь делаем при повторном нажатии
+    // Анимацию включаем сразу
     const reels = document.querySelectorAll('.reel');
-
-    // ШАГ 1: ПЕРЕЗАРЯДКА - Сбрасываем барабаны в начальное положение без анимации
     reels.forEach(reel => {
-        reel.style.transition = 'none'; // Отключаем анимацию для сброса
-        const items = Array.from(reel.children);
-        // Сбрасываем на позицию одного из первых элементов для быстрого старта
-        const initialIndex = Math.floor(Math.random() * items.length * 0.1);
-        const itemHeight = items[0].offsetHeight;
-        const initialOffset = initialIndex * itemHeight;
-        reel.style.transform = `translateY(-${initialOffset}px)`;
+         reel.style.transition = 'transform 3s cubic-bezier(.25, .1, .2, 1)';
     });
-    
-    // Оборачиваем основную логику в setTimeout, чтобы сброс успел примениться
+
+
+    // Оборачиваем вычисление в setTimeout, чтобы анимация успела включиться
     setTimeout(() => {
-        // 2. Розыгрыш результата
         const finalValue = weightedRandomChoice(payloadData.options);
 
-        // 3. Анимация до результата
         reels.forEach((reel, index) => {
-            // Возвращаем плавную анимацию
-            reel.style.transition = 'transform 3s cubic-bezier(.25, .1, .2, 1)';
-            
             const targetValue = (payloadData.type === 'score') ? finalValue[index] : finalValue;
             const items = Array.from(reel.children);
             const itemHeight = items[0].offsetHeight;
 
-            // Ищем целевой элемент в последней части ленты
             let targetIndex = -1;
-            for(let i = items.length - 1; i > items.length * 0.7; i--) {
+            for(let i = items.length - 2; i > items.length * 0.7; i--) { // ищем в последней трети
                 if (items[i].textContent === targetValue) {
                     targetIndex = i;
                     break;
-
                 }
             }
-            if (targetIndex === -1) targetIndex = items.length - 1;
+            if (targetIndex === -1) targetIndex = items.length - 2;
 
             const offset = targetIndex * itemHeight;
             reel.style.transform = `translateY(-${offset}px)`;
         });
 
-        // 4. Финал
         reels[0].addEventListener('transitionend', () => {
             const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
-            
-            const resultData = {
-                type: 'oracle_result',
-                value: resultText,
-            };
+            const resultData = { type: 'oracle_result', value: resultText };
             tg.sendData(JSON.stringify(resultData));
 
-            spinButton.disabled = false;
-            spinButton.textContent = 'ЕЩЕ РАЗ?';
+            // Логика "Еще раз"
+            buildUI(); // <-- ВМЕСТО ИЗМЕНЕНИЯ КНОПКИ МЫ ПРОСТО ПЕРЕСТРАИВАЕМ UI
+            spinning = false;
             tg.MainButton.show();
-            spinning = false; // Разрешаем новое вращение
             
         }, { once: true });
-    }, 100); // Небольшая задержка для надежности сброса
+    }, 100);
 }
         
         // Запасной вариант, если ничего не нашлось
