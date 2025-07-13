@@ -4,15 +4,13 @@ const spinButton = document.getElementById('spin_button');
 const slotMachineContainer = document.getElementById('slot_machine');
 const subtitle = document.getElementById('subtitle');
 
-let spinning = false;      // Флаг, предотвращающий повторное нажатие во время анимации
-let payloadData = null;    // Здесь будем хранить данные, полученные от бота
+let spinning = false;
+let payloadData = null;
 
 // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
 /**
  * Парсит данные из URL-хэша, которые передает бот.
- * Функция полностью аналогична той, что была в старом коде, но оставлена для ясности.
- * @returns {object|null} - Распарсенный объект payload или null в случае ошибки.
  */
 function getUrlParams() {
     try {
@@ -33,18 +31,14 @@ function getUrlParams() {
 
 /**
  * Создает и наполняет один барабан (UL элемент) значениями.
- * @param {string[]} values - Массив строк для отображения в барабане.
- * @returns {HTMLUListElement} - Готовый к вставке в DOM элемент UL.
  */
 function createReel(values) {
     const reelUl = document.createElement('ul');
     reelUl.className = 'reel';
     
-    // Для плавной и долгой прокрутки создаем длинный список,
-    // дублируя и перемешивая исходные значения много раз.
+    // Дублируем значения для длинной и плавной прокрутки
     const repeatedValues = [];
-    for (let i = 0; i < 20; i++) {
-        // Перемешиваем массив на каждой итерации для большей случайности на ленте
+    for (let i = 0; i < 30; i++) { // Увеличим количество для более надежного поиска
         const shuffled = [...values].sort(() => Math.random() - 0.5);
         repeatedValues.push(...shuffled);
     }
@@ -60,12 +54,56 @@ function createReel(values) {
 }
 
 /**
- * Строит пользовательский интерфейс в зависимости от типа игры ('winner', 'score', 'total').
+ * [НОВАЯ ФУНКЦИЯ] Устанавливает начальное положение барабанов без анимации.
+ * Для режима "score" пытается установить на "0", для остальных - на первый элемент.
+ */
+function setInitialPosition() {
+    const reels = document.querySelectorAll('.reel');
+    reels.forEach((reel, index) => {
+        // 1. Временно отключаем плавную анимацию
+        reel.style.transition = 'none';
+
+        const items = Array.from(reel.children);
+        const itemHeight = items[0].offsetHeight;
+        let targetValue = items[0].textContent; // По умолчанию - первый элемент
+        
+        // Для точного счета пытаемся найти '0'
+        if (payloadData.type === 'score') {
+            const zeroExists = items.some(item => item.textContent === '0');
+            if (zeroExists) {
+                targetValue = '0';
+            }
+        }
+        
+        // Ищем индекс целевого элемента где-то в середине ленты
+        const targetIndex = items.findIndex((item, idx) => 
+            item.textContent === targetValue && idx > items.length / 3
+        );
+        
+        const offset = targetIndex >= 0 ? targetIndex * itemHeight : 0;
+        
+        // 2. Мгновенно применяем трансформацию
+        reel.style.transform = `translateY(-${offset}px)`;
+
+        // 3. Возвращаем плавную анимацию. Используем requestAnimationFrame,
+        // чтобы браузер успел обработать мгновенное смещение перед включением анимации.
+        requestAnimationFrame(() => {
+            reel.style.transition = 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)';
+        });
+    });
+}
+
+
+/**
+ * Строит пользовательский интерфейс в зависимости от типа игры.
  */
 function buildUI() {
+    // Шаг 1: Полная очистка контейнера от предыдущих запусков.
     slotMachineContainer.innerHTML = '';
-    // Определяем текст подзаголовка и получаем данные для барабанов
+
+    // Определяем текст подзаголовка и данные для барабанов
     let reelsData;
+    // ... (блок if/else остается таким же, как в прошлый раз)
     if (payloadData.type === 'winner') {
         subtitle.textContent = "Кто же станет победителем?";
         reelsData = [payloadData.options.map(opt => opt.value)];
@@ -77,9 +115,9 @@ function buildUI() {
         const reel1Values = [...new Set(payloadData.options.map(opt => opt.value[0]))];
         const reel2Values = [...new Set(payloadData.options.map(opt => opt.value[1]))];
         reelsData = [reel1Values, reel2Values];
-    } else {
-        subtitle.textContent = "Ошибка: неизвестный тип игры.";
-        return;
+    } else { // Обработаем новый тип "assessment" для лайва
+        subtitle.textContent = "Оценка обстановки в матче:";
+        reelsData = [payloadData.options.map(opt => opt.value)];
     }
 
     // Создаем и добавляем барабаны в контейнер
@@ -89,10 +127,8 @@ function buildUI() {
         
         const reelUl = createReel(values);
         reelContainer.appendChild(reelUl);
-        
         slotMachineContainer.appendChild(reelContainer);
         
-        // Добавляем разделитель ":" если это второй барабан для режима "score"
         if (payloadData.type === 'score' && index === 0) {
             const separator = document.createElement('div');
             separator.className = 'separator';
@@ -101,37 +137,17 @@ function buildUI() {
         }
     });
 
-    // Активируем кнопку, когда все готово
+    // Шаг 2: Устанавливаем начальное положение барабанов ПОСЛЕ их создания.
+    setInitialPosition();
+
+    // Активируем кнопку
     spinButton.disabled = false;
     spinButton.textContent = 'КРУТИТЬ!';
 }
 
-/**
- * Выполняет взвешенный случайный выбор из массива опций.
- * Это и есть "честный" розыгрыш, который происходит на клиенте.
- * @param {Array} options - Массив объектов вида { value, weight }.
- * @returns {*} - Выбранное значение (свойство 'value' из объекта).
- */
-function weightedRandomChoice(options) {
-    let totalWeight = options.reduce((sum, option) => sum + option.weight, 0);
-    let randomNum = Math.random() * totalWeight;
-
-    for (const option of options) {
-        if (randomNum < option.weight) {
-            return option.value;
-        }
-        randomNum -= option.weight;
-    }
-    // На случай математической погрешности, возвращаем последний элемент
-    return options[options.length - 1].value;
-}
-
-
-// --- ГЛАВНАЯ ЛОГИКА ---
 
 /**
  * Функция, которая запускается по клику на кнопку "КРУТИТЬ!".
- * Имя `startSpin` сохранено для совместимости с `onclick` в HTML.
  */
 function startSpin() {
     if (spinning) return;
@@ -139,10 +155,10 @@ function startSpin() {
     spinButton.disabled = true;
     spinButton.textContent = 'ВРАЩАЕТСЯ...';
     
-    // 1. ЧЕСТНЫЙ РОЗЫГРЫШ: Определяем результат ЗАРАНЕЕ, до начала анимации.
+    // 1. ЧЕСТНЫЙ РОЗЫГРЫШ: Определяем результат ЗАРАНЕЕ.
     const finalValue = weightedRandomChoice(payloadData.options);
 
-    // 2. СРЕЖИССИРОВАННАЯ АНИМАЦИЯ: Запускаем прокрутку барабанов до нужного результата.
+    // 2. АНИМАЦИЯ: Запускаем прокрутку до нужного результата.
     const reels = document.querySelectorAll('.reel');
     
     reels.forEach((reel, index) => {
@@ -152,42 +168,37 @@ function startSpin() {
         const items = Array.from(reel.children);
         const itemHeight = items[0].offsetHeight;
         
-        // Ищем индекс целевого элемента в ПОСЛЕДНЕЙ трети списка,
-        // чтобы прокрутка была достаточно длинной и красивой.
+        // Ищем индекс целевого элемента в ПОСЛЕДНЕЙ трети списка
         let targetIndex = -1;
-        for (let i = items.length - 1; i >= items.length / 3; i--) {
+        for (let i = items.length - 1; i > items.length / 2; i--) {
             if (items[i].textContent === targetValue) {
                 targetIndex = i;
                 break;
             }
         }
         
-        // Если по какой-то причине не нашли, берем первое попавшееся значение
         if (targetIndex === -1) {
             targetIndex = items.findIndex(item => item.textContent === targetValue);
+            if (targetIndex === -1) targetIndex = items.length - 1; // Защита от сбоя
         }
 
-        // Вычисляем необходимое смещение барабана
-        const offset = targetIndex * itemHeight;
+        // Вычисляем смещение. Добавляем случайное "перескакивание" для живости
+        const randomOffset = (Math.random() - 0.5) * itemHeight * 0.4;
+        const offset = (targetIndex * itemHeight) + randomOffset;
         
-        // Применяем transform. CSS сделает анимацию плавной.
         reel.style.transform = `translateY(-${offset}px)`;
     });
     
     // 3. ФИНАЛ: Отправляем результат боту ПОСЛЕ окончания анимации.
-    // Вешаем слушатель события на ПЕРВЫЙ барабан. Он сработает один раз.
     reels[0].addEventListener('transitionend', () => {
-        // Собираем итоговый текст результата
         const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
         
-        // Готовим данные для отправки боту
         const resultData = {
             type: 'oracle_result',
             value: resultText,
         };
         tg.sendData(JSON.stringify(resultData));
         
-        // Даем пользователю 1.5 секунды, чтобы он успел увидеть результат перед закрытием
         setTimeout(() => { tg.close(); }, 1500);
         
     }, { once: true });
@@ -196,17 +207,14 @@ function startSpin() {
 // --- ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ ---
 window.addEventListener('load', () => {
     tg.expand();
-    
     payloadData = getUrlParams();
 
-    // Защита от ошибок: если данные не пришли или они некорректны.
     if (!payloadData || !payloadData.type || !payloadData.options || payloadData.options.length === 0) {
         subtitle.textContent = "Не удалось загрузить данные для игры.";
         spinButton.textContent = "ОШИБКА";
-        tg.HapticFeedback.notificationOccurred('error'); // Виброотклик об ошибке
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
         return;
     }
     
-    // Если данные в порядке, строим интерфейс
     buildUI();
 });
