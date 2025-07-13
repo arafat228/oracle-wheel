@@ -1,7 +1,12 @@
 /* Стили для всего приложения */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--tg-theme-bg-color, #212121);
+    /* --- НОВЫЙ АНИМИРОВАННЫЙ ГРАДИЕНТНЫЙ ФОН --- */
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    /* --- КОНЕЦ --- */
+
     color: var(--tg-theme-text-color, #ffffff);
     display: flex;
     justify-content: center;
@@ -12,7 +17,14 @@ body {
     padding: 20px;
     box-sizing: border-box;
     height: 100vh;
-    overflow: hidden; /* Важно, чтобы избежать случайной прокрутки страницы */
+    overflow: hidden;
+}
+
+/* --- Анимация для фона --- */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .main-container {
@@ -26,33 +38,37 @@ body {
 h1 {
     font-size: 28px;
     margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Тень для читаемости на градиенте */
 }
 
 #subtitle {
     font-size: 16px;
-    color: var(--tg-theme-hint-color, #aaaaaa);
+    color: var(--tg-theme-hint-color, #dddddd);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Тень для читаемости */
     margin-top: 0;
-    margin-bottom: 30px; /* Увеличим отступ до слот-машины */
-    min-height: 20px; /* Чтобы контейнер не прыгал при смене текста */
+    margin-bottom: 30px;
+    min-height: 20px;
 }
 
-/* --- Стили для самой Слот-машины --- */
+/* --- УЛУЧШЕННЫЕ СТИЛИ ДЛЯ СЛОТ-МАШИНЫ --- */
 .slot-machine {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 95%; /* Чуть шире */
+    width: 95%;
     margin: 0 auto;
-    background: rgba(0,0,0,0.2);
+    /* Делаем фон чуть темнее и прозрачнее для глубины */
+    background: rgba(0, 0, 0, 0.3); 
     border-radius: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    height: 60px; /* Высота видимой части одного элемента */
+    /* Добавляем внутреннюю неоновую тень для эффекта подсветки */
+    box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5), 0 0 5px rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    height: 60px;
     position: relative;
-    /* Эффект перспективы для объема */
     perspective: 800px; 
 }
 
-/* Псевдо-элемент для создания "окошка" с градиентами, чтобы скрыть края */
+/* Окошко-градиент остается почти без изменений */
 .slot-machine::before {
     content: '';
     position: absolute;
@@ -60,56 +76,56 @@ h1 {
     left: 0;
     right: 0;
     bottom: 0;
-    border-radius: 20px; /* Соответствует родительскому */
-    /* Главная магия: градиенты, которые плавно переходят в фон по краям */
-    box-shadow: inset 0 35px 25px -20px var(--tg-theme-bg-color, #212121),
-                inset 0 -35px 25px -20px var(--tg-theme-bg-color, #212121);
-    z-index: 2; /* Должен быть поверх барабанов */
-    pointer-events: none; /* Чтобы не мешал кликам */
+    border-radius: 20px;
+    /* Используем более темный и плотный градиент для лучшего эффекта */
+    box-shadow: inset 0 35px 25px -15px rgba(15,15,35,0.9),
+                inset 0 -35px 25px -15px rgba(15,15,35,0.9);
+    z-index: 2;
+    pointer-events: none;
 }
 
-/* Контейнер для одного барабана. Он обрезает все, что выходит за его пределы */
 .reel-container {
-    height: 60px; /* Высота должна совпадать с высотой родителя .slot-machine */
+    height: 60px;
     overflow: hidden;
-    flex: 1; /* Чтобы барабаны (если их два) делили место поровну */
+    flex: 1;
 }
 
-/* Сам барабан - это список UL */
+/* --- ИЗМЕНЕННЫЕ СТИЛИ ДЛЯ БАРАБАНА (АНИМАЦИЯ) --- */
 .reel {
     list-style: none;
     padding: 0;
     margin: 0;
-    /* Ключевое свойство для анимации. Она будет плавной и долгой. */
-    /* cubic-bezier - это функция плавности для красивого замедления */
-    transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
-    /* 3D-трансформация для эффекта объема */
+    /* Увеличиваем длительность до 5 секунд */
+    /* Меняем кривую на более плавную в конце (ease-out) */
+    transition: transform 5s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform-style: preserve-3d;
 }
 
-/* Каждый элемент в барабане */
+/* Стили для элемента барабана остаются прежними */
 .reel-item {
-    height: 60px; /* Высота одного элемента, совпадает с контейнером */
-    line-height: 60px; /* Выравнивание текста по вертикали */
+    height: 60px;
+    line-height: 60px;
     font-size: 22px;
     font-weight: bold;
-    /* Чтобы текст не переносился */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 5px;
+    padding: 0 10px;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.7); /* Легкое свечение текста */
 }
 
-/* Разделитель ":" для режима "точный счет" */
 .separator {
     font-size: 30px;
     font-weight: bold;
     padding: 0 10px;
-    /* Ставим его под градиент, но над барабанами */
     z-index: 1;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255,255,255,0.7);
 }
 
-/* Стили для кнопки "Крутить". Взят и адаптирован старый стиль */
+
+/* --- НОВЫЕ СТИЛИ ДЛЯ КНОПКИ "КРУТИТЬ" --- */
 .spin-button {
     display: block;
     width: 80%;
@@ -118,29 +134,41 @@ h1 {
     margin: 40px auto 0;
     font-size: 20px;
     font-weight: bold;
-    color: #ffffff; /* Белый текст */
-    background: linear-gradient(180deg, #42aaff 0%, #0077cc 100%); /* Синий градиент */
+    color: #ffffff;
+    /* Новый яркий градиент */
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    /* Запускаем анимацию "дыхания" */
+    animation: buttonPulse 2s infinite ease-in-out;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@keyframes buttonPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Убираем анимацию при наведении, чтобы она не конфликтовала с hover-эффектом */
 .spin-button:not(:disabled):hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    animation: none; /* Отключаем пульсацию */
+    transform: scale(1.1); /* Увеличиваем сильнее */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 .spin-button:not(:disabled):active {
-    transform: scale(0.98);
+    transform: scale(1.05);
 }
 
-/* Стиль для заблокированной кнопки */
 .spin-button:disabled {
     background: var(--tg-theme-button-color, #555);
     color: var(--tg-theme-button-text-color, #ccc);
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    animation: none; /* Отключаем анимацию для неактивной кнопки */
 }
