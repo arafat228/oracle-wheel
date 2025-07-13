@@ -63,6 +63,7 @@ function createReel(values) {
  * Строит пользовательский интерфейс в зависимости от типа игры ('winner', 'score', 'total').
  */
 function buildUI() {
+    slotMachineContainer.innerHTML = '';
     // Определяем текст подзаголовка и получаем данные для барабанов
     let reelsData;
     if (payloadData.type === 'winner') {
