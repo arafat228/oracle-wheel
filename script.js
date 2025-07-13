@@ -49,23 +49,24 @@ function createReel(values) {
 
 // ЭТА ФУНКЦИЯ БЫЛА СЛОМАНА. ВОТ ЕЕ ПРОСТАЯ РАБОЧАЯ ВЕРСИЯ
 function buildUI() {
-    // 1. Сброс "памяти"
+    // 1. Сброс
     slotMachineContainer.innerHTML = '';
     tg.MainButton.hide();
 
-    // 2. Определение данных (как в самой первой рабочей версии)
+    // 2. Определение данных
     let reelsData;
     let subtitleText = "Ошибка: неизвестный тип игры.";
+    const type = payloadData.type;
 
-    if (payloadData.type === 'winner' || payloadData.type === 'total' || payloadData.type === 'assessment' || payloadData.type === 'markets') {
+    if (type === 'winner' || type === 'total' || type === 'assessment' || type === 'markets') {
          reelsData = [payloadData.options.map(opt => opt.value)];
-         switch(payloadData.type) {
+         switch(type) {
             case 'winner': subtitleText = "Кто же станет победителем?"; break;
             case 'total': subtitleText = "Какой будет тотал матча?"; break;
             case 'assessment': subtitleText = "Оценка обстановки в матче:"; break;
-             case 'markets': subtitleText = "Прогноз на рынки:"; break;
+            case 'markets': subtitleText = "Прогноз на рынки:"; break;
          }
-    } else if (payloadData.type === 'score') {
+    } else if (type === 'score') {
         subtitleText = "Какой будет точный счет?";
         const reel1Values = [...new Set(payloadData.options.map(opt => opt.value[0]))];
         const reel2Values = [...new Set(payloadData.options.map(opt => opt.value[1]))];
@@ -82,7 +83,7 @@ function buildUI() {
         reelContainer.appendChild(reelUl);
         slotMachineContainer.appendChild(reelContainer);
 
-        if (payloadData.type === 'score' && index === 0) {
+        if (type === 'score' && index === 0) {
             const separator = document.createElement('div');
             separator.className = 'separator';
             separator.textContent = ':';
@@ -90,9 +91,13 @@ function buildUI() {
         }
     });
 
-    // 4. Активация кнопки - это единственное, что здесь должно происходить в конце.
-    spinButton.disabled = false;
-    spinButton.textContent = 'КРУТИТЬ!';
+    // 4. Устанавливаем начальное положение и активируем кнопку
+    // И снова используем setTimeout, чтобы дать браузеру отрисовать DOM
+    setTimeout(() => {
+        setInitialPosition();
+        spinButton.disabled = false;
+        spinButton.textContent = 'КРУТИТЬ!';
+    }, 50); // Небольшая задержка
 }
 
 function setInitialPosition() {
@@ -145,45 +150,59 @@ function startSpin() {
     spinButton.disabled = true;
     spinButton.textContent = 'ВРАЩАЕТСЯ...';
     
-    // Просто розыгрыш и запуск анимации. Никаких перезарядок и прочей хуйни.
-    const finalValue = weightedRandomChoice(payloadData.options);
     const reels = document.querySelectorAll('.reel');
 
-    reels.forEach((reel, index) => {
-        // Устанавливаем анимацию ПЕРЕД трансформацией
-        reel.style.transition = 'transform 3s cubic-bezier(.25, .1, .2, 1)';
-        
-        const targetValue = (payloadData.type === 'score') ? finalValue[index] : finalValue;
-        const items = Array.from(reel.children);
-        const itemHeight = items[0].offsetHeight;
-        
-        // Простой и надежный поиск индекса в последней части ленты
-        let targetIndex = -1;
-        for (let i = Math.floor(items.length * 0.9); i < items.length; i++) {
-             if (items[i].textContent === targetValue) {
-                targetIndex = i;
-                break;
-            }
-        }
-        // Если вдруг не нашли, берем самый последний элемент
-        if (targetIndex === -1) targetIndex = items.length - 1; 
-
-        const offset = targetIndex * itemHeight;
-        reel.style.transform = `translateY(-${offset}px)`;
+    // "Перезарядка" барабанов для длинного спина
+    reels.forEach(reel => {
+        reel.style.transition = 'none'; // Убираем анимацию для сброса
+        const currentTransform = getComputedStyle(reel).transform;
+        const matrix = new DOMMatrix(currentTransform);
+        const currentY = matrix.m42;
+        const itemHeight = reel.querySelector('.reel-item').offsetHeight;
+        // Отматываем на несколько полных оборотов назад
+        const oneTurn = reel.children.length * itemHeight / 2; // Примерно половина ленты
+        reel.style.transform = `translateY(${currentY + oneTurn}px)`;
     });
-    
-    // Обработка финала
-    reels[0].addEventListener('transitionend', () => {
-        const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
-        const resultData = { type: 'oracle_result', value: resultText };
-        tg.sendData(JSON.stringify(resultData));
 
-        spinButton.disabled = false;
-        spinButton.textContent = 'ЕЩЕ РАЗ?';
-        tg.MainButton.show();
-        spinning = false; // Починка повторного вращения
-        
-    }, { once: true });
+
+    // Оборачиваем основную логику в setTimeout, чтобы сброс успел примениться
+    setTimeout(() => {
+        const finalValue = weightedRandomChoice(payloadData.options);
+
+        reels.forEach((reel, index) => {
+            // Возвращаем плавную анимацию из CSS
+            reel.style.transition = ''; // Это вернет значение из style.css
+            
+            const targetValue = (payloadData.type === 'score') ? finalValue[index] : finalValue;
+            const items = Array.from(reel.children);
+            const itemHeight = items[0].offsetHeight;
+
+            // Ищем целевой элемент в последней части ленты
+            let targetIndex = -1;
+            for(let i = items.length - 1; i > items.length * 0.8; i--) {
+                if (items[i].textContent === targetValue) {
+                    targetIndex = i;
+                    break;
+                }
+            }
+            if (targetIndex === -1) targetIndex = items.length - 1;
+
+            const offset = targetIndex * itemHeight;
+            reel.style.transform = `translateY(-${offset}px)`;
+        });
+
+        // Обработка финала
+        reels[0].addEventListener('transitionend', () => {
+            const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
+            const resultData = { type: 'oracle_result', value: resultText };
+            tg.sendData(JSON.stringify(resultData));
+
+            spinButton.disabled = false;
+            spinButton.textContent = 'ЕЩЕ РАЗ?';
+            tg.MainButton.show();
+            spinning = false;
+        }, { once: true });
+    }, 100);
 }
 
 
