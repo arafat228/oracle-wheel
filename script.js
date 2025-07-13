@@ -95,6 +95,36 @@ function buildUI() {
     spinButton.textContent = 'КРУТИТЬ!';
 }
 
+function setInitialPosition() {
+    const reels = document.querySelectorAll('.reel');
+    reels.forEach(reel => {
+        // 1. Временно отключаем плавную анимацию
+        reel.style.transition = 'none';
+
+        const items = Array.from(reel.children);
+        // Защита от пустого барабана
+        if (items.length === 0) return;
+        
+        const itemHeight = items[0].offsetHeight;
+        let targetValue = items[0].textContent; 
+        
+        // Для точного счета пытаемся найти '0'
+        if (payloadData.type === 'score' && items.some(item => item.textContent === '0')) {
+            targetValue = '0';
+        }
+        
+        // Ищем индекс где-то в середине ленты, чтобы не было "перемотки" при загрузке
+        const targetIndex = items.findIndex((item, idx) => 
+            item.textContent === targetValue && idx > items.length / 2
+        );
+        
+        const offset = targetIndex >= 0 ? targetIndex * itemHeight : 0;
+        
+        // 2. Мгновенно применяем трансформацию
+        reel.style.transform = `translateY(-${offset}px)`;
+    });
+}
+
 function weightedRandomChoice(options) {
     let totalWeight = options.reduce((sum, option) => sum + option.weight, 0);
     let randomNum = Math.random() * totalWeight;
