@@ -174,14 +174,23 @@ function startSpin() {
     
     // 3. Финал (обработка завершения анимации).
     reels[0].addEventListener('transitionend', () => {
+        // Отправляем результат боту, как и раньше
         const resultText = (payloadData.type === 'score') ? finalValue.join(' : ') : finalValue;
-        
         const resultData = {
             type: 'oracle_result',
             value: resultText,
         };
         tg.sendData(JSON.stringify(resultData));
-        setTimeout(() => { tg.close(); }, 1500);
+
+        // Убираем автозакрытие
+        // setTimeout(() => { tg.close(); }, 1500);
+
+        // Меняем состояние кнопки "Крутить"
+        spinButton.disabled = false;
+        spinButton.textContent = 'ЕЩЕ РАЗ?';
+
+        // Показываем Главную Кнопку для выхода
+        tg.MainButton.show();
         
     }, { once: true });
 }
@@ -189,6 +198,8 @@ function startSpin() {
 // --- ИНИЦИАЛИЗАЦИЯ ---
 window.addEventListener('load', () => {
     tg.expand();
+    tg.MainButton.setText('Закрыть');
+    tg.MainButton.onClick(() => tg.close());
     payloadData = getUrlParams();
 
     if (!payloadData || !payloadData.type || !payloadData.options || payloadData.options.length === 0) {
